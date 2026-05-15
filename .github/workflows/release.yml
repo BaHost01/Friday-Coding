@@ -1,0 +1,37 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Publish
+      run: dotnet publish FridayCodingIDE/FridayCodingIDE.csproj -c Release -r win-x64 --self-contained true -o ./publish/win-x64 /p:PublishSingleFile=true
+
+    - name: Create Zip
+      run: |
+        cd publish/win-x64
+        zip -r ../../FridayCodingIDE-win-x64.zip .
+        cd ../..
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: FridayCodingIDE-win-x64.zip
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
