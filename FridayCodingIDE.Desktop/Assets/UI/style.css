@@ -1,0 +1,203 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #1e1e1e;
+    color: #e1e1e1;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+header {
+    background-color: #252526;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    height: 30px;
+}
+
+h1 {
+    font-size: 1.2rem;
+    font-weight: 400;
+}
+
+.toolbar {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+button:hover {
+    background-color: #444;
+}
+
+.btn-run {
+    background-color: #0e639c;
+}
+
+.btn-run:hover {
+    background-color: #1177bb;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+.panel {
+    background-color: #252526;
+    border-right: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+}
+
+#left-panel { width: 250px; }
+#center-panel { flex: 1; border-right: none; }
+#right-panel { width: 300px; border-left: 1px solid #333; border-right: none; }
+
+.tabs {
+    display: flex;
+    background-color: #2d2d2d;
+}
+
+.tab {
+    padding: 8px 15px;
+    background: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.tab.active {
+    border-bottom-color: #007acc;
+    background-color: #1e1e1e;
+}
+
+.tab-content {
+    display: none;
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: flex;
+    flex-direction: column;
+}
+
+#designer {
+    background-color: #1e1e1e;
+    position: relative;
+}
+
+#canvas {
+    flex: 1;
+    border: 1px dashed #444;
+    position: relative;
+}
+
+#lua-editor {
+    flex: 1;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border: none;
+    resize: none;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 1rem;
+    padding: 10px;
+    outline: none;
+}
+
+#templates {
+    gap: 10px;
+}
+
+.template-item {
+    background-color: #333;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: grab;
+    text-align: center;
+}
+
+footer {
+    height: 150px;
+    background-color: #1e1e1e;
+    border-top: 1px solid #333;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.log {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.log-error { color: #f44747; }
+.log-success { color: #89d185; }
+
+/* Loading Overlay */
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.5s ease;
+}
+
+.spinning-logo {
+    width: 150px;
+    height: 150px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.gradient-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,1) 80%);
+    pointer-events: none;
+}

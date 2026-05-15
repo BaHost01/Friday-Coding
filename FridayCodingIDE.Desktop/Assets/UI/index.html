@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friday-Coding IDE</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="loading-overlay">
+        <div class="gradient-bg"></div>
+        <img src="lua-logo.png" alt="Lua" class="spinning-logo">
+    </div>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <img src="lua-logo.png" alt="Lua" class="logo">
+                <img src="psych-logo.png" alt="Psych" class="logo">
+                <h1>Friday-Coding IDE</h1>
+            </div>
+            <div class="toolbar">
+                <button id="runBtn" class="btn-run">RUN MOD</button>
+                <button id="exportBtn">EXPORT</button>
+            </div>
+        </header>
+        
+        <main>
+            <section id="left-panel" class="panel">
+                <div class="tabs">
+                    <button class="tab active" data-tab="explorer">Explorer</button>
+                    <button class="tab" data-tab="templates">Templates</button>
+                </div>
+                <div id="project-explorer" class="tab-content active">
+                    <ul id="file-list">
+                        <!-- Files populated by C# -->
+                    </ul>
+                </div>
+                <div id="templates" class="tab-content">
+                    <div class="template-item" draggable="true" data-type="sprite">Sprite</div>
+                    <div class="template-item" draggable="true" data-type="note">Note</div>
+                </div>
+            </section>
+
+            <section id="center-panel" class="panel">
+                <div class="tabs">
+                    <button class="tab active" data-tab="designer">Designer</button>
+                    <button class="tab" data-tab="code">Code</button>
+                </div>
+                <div id="designer" class="tab-content active">
+                    <div id="canvas"></div>
+                </div>
+                <div id="code" class="tab-content">
+                    <textarea id="lua-editor" placeholder="Write your Lua here..."></textarea>
+                </div>
+            </section>
+
+            <section id="right-panel" class="panel">
+                <h3>Properties</h3>
+                <div id="property-grid">
+                    <p>Select an object to edit properties.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div id="console">
+                <div class="log">[System] IDE Ready.</div>
+            </div>
+        </footer>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
