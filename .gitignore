@@ -1,0 +1,15 @@
+# Visual Studio
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# MonoGame
+Content/bin/
+Content/obj/
+
+# OS generated files
+.DS_Store
+Thumbs.db
