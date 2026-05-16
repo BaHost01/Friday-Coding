@@ -6,6 +6,7 @@ using FridayCodingIDE.Desktop.Services;
 using FridayCodingIDE.Services;
 using Newtonsoft.Json.Linq;
 using AvaloniaWebView;
+using Spectre.Console;
 
 namespace FridayCodingIDE.Desktop
 {
@@ -17,19 +18,39 @@ namespace FridayCodingIDE.Desktop
         {
             InitializeComponent();
             
+            AnsiConsole.MarkupLine("[bold blue][INFO][/] Initializing Friday-Coding IDE...");
+
             // WebView initialization
-            MainWebView.NavigationCompleted += (s, e) => UpdateFileList();
+            MainWebView.NavigationCompleted += (s, e) => {
+                AnsiConsole.MarkupLine("[bold green][SUCCESS][/] WebView Navigation Completed.");
+                UpdateFileList();
+            };
             MainWebView.WebMessageReceived += OnMessageReceived;
 
             // Load UI
             string uiPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "UI", "index.html");
             if (File.Exists(uiPath))
             {
+                AnsiConsole.MarkupLine($"[bold blue][INFO][/] Loading UI from: [yellow]{uiPath}[/]");
                 MainWebView.Url = new Uri("file://" + uiPath);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[bold red][ERROR][/] UI file not found!");
             }
 
             // Auto Update Check
-            Task.Run(() => AutoUpdater.CheckForUpdatesAsync(OnUpdateAvailable));
+            Task.Run(async () => {
+                try 
+                {
+                    await AutoUpdater.CheckForUpdatesAsync(OnUpdateAvailable);
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine("[bold red][ERROR][/] AutoUpdater failed.");
+                    AnsiConsole.WriteException(ex);
+                }
+            });
         }
 
         private void OnMessageReceived(object? sender, object e)
@@ -41,7 +62,11 @@ namespace FridayCodingIDE.Desktop
                 var prop = e.GetType().GetProperty("Message");
                 if (prop != null) message = prop.GetValue(e)?.ToString();
                 
-                var msg = JObject.Parse(message ?? "");
+                if (string.IsNullOrEmpty(message)) return;
+
+                AnsiConsole.MarkupLine($"[bold cyan][BRIDGE][/] Received: [grey]{message.EscapeMarkup()}[/]");
+                
+                var msg = JObject.Parse(message);
                 string? action = msg["action"]?.ToString();
 
                 if (action == "run_mod")
@@ -51,7 +76,8 @@ namespace FridayCodingIDE.Desktop
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Bridge error: {ex.Message}");
+                AnsiConsole.MarkupLine("[bold red][ERROR][/] Bridge error occurred.");
+                AnsiConsole.WriteException(ex);
             }
         }
 
@@ -59,19 +85,36 @@ namespace FridayCodingIDE.Desktop
         {
             string[] files = { "main.lua", "assets/images/bg.png" };
             string json = JArray.FromObject(files).ToString();
-            // WebView.Avalonia specific way to send data if available
-            MainWebView.ExecuteScriptAsync($"if(window.ide) window.ide.setProjectFiles({json})");
+            SafeExecuteScriptAsync($"if(window.ide) window.ide.setProjectFiles({json})");
         }
 
         private void RunMod()
         {
-            MainWebView.ExecuteScriptAsync("window.ide.appendLog('Launching Psych Engine...', 'success')");
+            AnsiConsole.MarkupLine("[bold yellow][ACTION][/] Running Mod...");
+            SafeExecuteScriptAsync("window.ide.appendLog('Launching Psych Engine...', 'success')");
         }
 
         private void OnUpdateAvailable(string newVersion)
         {
-            Console.WriteLine($"Update available: {newVersion}");
-            MainWebView.ExecuteScriptAsync($"window.ide.appendLog('New Update Available: {newVersion}', 'success')");
+            AnsiConsole.MarkupLine($"[bold green][UPDATE][/] New Version Available: [yellow]{newVersion}[/]");
+            SafeExecuteScriptAsync($"window.ide.appendLog('New Update Available: {newVersion}', 'success')");
+        }
+
+        /// <summary>
+        /// Executes a script in the WebView safely by catching and logging any exceptions.
+        /// </summary>
+        private async void SafeExecuteScriptAsync(string script)
+        {
+            try
+            {
+                await MainWebView.ExecuteScriptAsync(script);
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine("[bold red][ERROR][/] Failed to execute script in WebView.");
+                AnsiConsole.MarkupLine($"[grey]Script: {script.EscapeMarkup()}[/]");
+                AnsiConsole.WriteException(ex);
+            }
         }
     }
 }

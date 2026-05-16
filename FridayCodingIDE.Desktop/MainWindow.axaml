@@ -6,6 +6,9 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="FridayCodingIDE.Desktop.MainWindow"
         Title="Friday-Coding IDE"
-        Background="#1e1e1e">
-    <webview:WebView x:Name="MainWebView" />
+        Background="#1e1e1e"
+        WindowState="Maximized">
+    <webview:WebView x:Name="MainWebView" 
+                     HorizontalAlignment="Stretch" 
+                     VerticalAlignment="Stretch" />
 </Window>
