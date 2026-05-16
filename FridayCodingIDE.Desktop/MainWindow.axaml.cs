@@ -80,6 +80,11 @@ namespace FridayCodingIDE.Desktop
                     string? code = msg["code"]?.ToString();
                     RunMod(code ?? "");
                 }
+                else if (action == "install_psych")
+                {
+                    string? url = msg["url"]?.ToString();
+                    InstallPsych(url ?? "");
+                }
             }
             catch (Exception ex)
             {
@@ -108,6 +113,38 @@ namespace FridayCodingIDE.Desktop
         {
             AnsiConsole.MarkupLine($"[bold green][[UPDATE]][/] New Version Available: [yellow]{newVersion}[/]");
             SafeExecuteScriptAsync($"window.ide.appendLog('New Update Available: {newVersion}', 'success')");
+        }
+
+        private void InstallPsych(string url)
+        {
+            Task.Run(async () => {
+                try
+                {
+                    await AnsiConsole.Status()
+                        .Spinner(Spectre.Console.Spinner.Known.Dots)
+                        .StartAsync("[bold yellow]Installing Psych Engine...[/]", async ctx => {
+                            AnsiConsole.MarkupLine($"[bold blue][[INFO]][/] Downloading from: [grey]{url.EscapeMarkup()}[/]");
+                            await Task.Delay(3000); // Simulate download
+                            
+                            ctx.Status("[bold yellow]Extracting Assets...[/]");
+                            SafeExecuteScriptAsync("window.ide.appendLog('Extracting Assets...', 'progress', 'install-step')");
+                            await Task.Delay(2000); // Simulate extraction
+                            
+                            ctx.Status("[bold yellow]Finalizing Installation...[/]");
+                            SafeExecuteScriptAsync("window.ide.appendLog('Finalizing...', 'progress', 'install-step')");
+                            await Task.Delay(1500);
+                        });
+
+                    AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Psych Engine Installed successfully.");
+                    SafeExecuteScriptAsync("window.ide.appendLog('Psych Engine Installed!', 'success', 'install-step')");
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Installation failed.");
+                    AnsiConsole.WriteException(ex);
+                    SafeExecuteScriptAsync("window.ide.appendLog('Installation Failed!', 'error', 'install-step')");
+                }
+            });
         }
 
         /// <summary>

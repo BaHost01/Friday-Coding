@@ -30,18 +30,51 @@ runBtn.addEventListener('click', () => {
     const code = editor.getValue();
     log("Executing Lua script...", "success");
     
-    if (window.chrome && window.chrome.webview) {
-        window.chrome.webview.postMessage({ action: "run_mod", code: code });
-    } else if (typeof invokeCSharpAction === 'function') {
-        invokeCSharpAction(JSON.stringify({ action: "run_mod", code: code }));
-    }
+    sendToCSharp({ action: "run_mod", code: code });
 });
 
-function log(message, type = "") {
+// Install Psych Button
+const installBtn = document.getElementById('installBtn');
+installBtn.addEventListener('click', () => {
+    log("Starting Psych Engine Installation...", "success");
+    log("Downloading from GameBanana...", "progress", "install-step");
+    
+    sendToCSharp({ action: "install_psych", url: "https://gamebanana.com/mods/download/309789#FileInfo_1406924" });
+});
+
+function sendToCSharp(payload) {
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage(payload);
+    } else if (typeof invokeCSharpAction === 'function') {
+        invokeCSharpAction(JSON.stringify(payload));
+    }
+}
+
+function log(message, type = "", id = "") {
     const consoleElem = document.getElementById('console');
+    
+    // If id is provided and element exists, update it instead of creating new
+    if (id && document.getElementById(id)) {
+        const existing = document.getElementById(id);
+        existing.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        existing.className = `log ${type ? 'log-' + type : ''}`;
+        return;
+    }
+
     const logElem = document.createElement('div');
+    if (id) logElem.id = id;
     logElem.className = `log ${type ? 'log-' + type : ''}`;
-    logElem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    
+    if (type === "progress") {
+        const spinner = document.createElement('div');
+        spinner.className = 'log-spinner';
+        logElem.appendChild(spinner);
+    }
+
+    const text = document.createElement('span');
+    text.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+    logElem.appendChild(text);
+
     consoleElem.appendChild(logElem);
     consoleElem.scrollTop = consoleElem.scrollHeight;
 }

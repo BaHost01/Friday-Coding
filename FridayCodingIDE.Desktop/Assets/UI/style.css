@@ -288,6 +288,19 @@ button:hover {
     margin-bottom: 4px;
     white-space: pre-wrap;
     word-break: break-all;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.log-spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--accent);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
 }
 
 /* Loading Overlay */
