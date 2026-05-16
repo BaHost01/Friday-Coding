@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Collections.Generic;
+using Spectre.Console;
 
 namespace FridayCodingIDE.Services
 {
@@ -17,7 +18,12 @@ namespace FridayCodingIDE.Services
             "SyntaxChecking",
             "Templates",
             "TestingEnvironment",
-            "UserInterface"
+            "UserInterface",
+            "assets/images",
+            "assets/sounds",
+            "assets/music",
+            "assets/data",
+            "assets/songs"
         };
 
         private const string ConfigFileName = "project.json";
@@ -29,12 +35,16 @@ namespace FridayCodingIDE.Services
         {
             try
             {
+                AnsiConsole.MarkupLine($"[bold blue][INFO][/] Initializing new project: [yellow]{name}[/] at [grey]{path}[/]");
+                
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
+                    AnsiConsole.MarkupLine("[bold green][SUCCESS][/] Created project root directory.");
                 }
 
                 ValidateDirectories(path);
+                EnsureDefaultFiles(path);
 
                 var config = new ProjectConfig
                 {
@@ -50,7 +60,8 @@ namespace FridayCodingIDE.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing project: {ex.Message}");
+                AnsiConsole.MarkupLine("[bold red][ERROR][/] Error initializing project.");
+                AnsiConsole.WriteException(ex);
                 return false;
             }
         }
@@ -59,10 +70,14 @@ namespace FridayCodingIDE.Services
         {
             try
             {
+                AnsiConsole.MarkupLine($"[bold blue][INFO][/] Loading project from: [grey]{path}[/]");
+                
                 string configPath = Path.Combine(path, ConfigFileName);
                 if (!File.Exists(configPath))
                 {
-                    return false;
+                    AnsiConsole.MarkupLine("[bold yellow][WARN][/] project.json not found. Creating default config.");
+                    InitializeNewProject(path, "Recovered Project");
+                    return true;
                 }
 
                 string json = File.ReadAllText(configPath);
@@ -70,22 +85,33 @@ namespace FridayCodingIDE.Services
                 CurrentProjectPath = path;
 
                 ValidateDirectories(path);
+                EnsureDefaultFiles(path);
 
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading project: {ex.Message}");
+                AnsiConsole.MarkupLine("[bold red][ERROR][/] Error loading project.");
+                AnsiConsole.WriteException(ex);
                 return false;
             }
         }
 
         public void SaveProject(string path, ProjectConfig config)
         {
-            string configPath = Path.Combine(path, ConfigFileName);
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            string json = JsonSerializer.Serialize(config, options);
-            File.WriteAllText(configPath, json);
+            try
+            {
+                string configPath = Path.Combine(path, ConfigFileName);
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(config, options);
+                File.WriteAllText(configPath, json);
+                AnsiConsole.MarkupLine("[bold green][SUCCESS][/] Project configuration saved.");
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine("[bold red][ERROR][/] Failed to save project configuration.");
+                AnsiConsole.WriteException(ex);
+            }
         }
 
         public void ValidateDirectories(string basePath)
@@ -96,7 +122,30 @@ namespace FridayCodingIDE.Services
                 if (!Directory.Exists(dirPath))
                 {
                     Directory.CreateDirectory(dirPath);
+                    AnsiConsole.MarkupLine($"[bold cyan][FS][/] Created missing directory: [grey]{dir}[/]");
                 }
+            }
+        }
+
+        public void EnsureDefaultFiles(string basePath)
+        {
+            // Ensure main.lua exists
+            string mainLuaPath = Path.Combine(basePath, "Lua", "main.lua");
+            if (!File.Exists(mainLuaPath))
+            {
+                string defaultLua = "-- Friday-Coding IDE Default Script\n\nfunction onCreate()\n    -- Called when the script starts\n    debugPrint('Hello from Friday-Coding!')\nend\n";
+                File.WriteAllText(mainLuaPath, defaultLua);
+                AnsiConsole.MarkupLine("[bold cyan][FS][/] Created default [grey]main.lua[/]");
+            }
+
+            // Ensure a basic .gitkeep in empty directories if needed, or just specific files
+            // For example, a placeholder background if it's missing (as referenced in MainWindow)
+            string placeholderBg = Path.Combine(basePath, "assets", "images", "bg.png");
+            if (!File.Exists(placeholderBg))
+            {
+                // We can't easily create a PNG here without a library, but we can touch it or skip
+                // For now, let's just log that it's missing or create a dummy file if appropriate
+                // File.WriteAllBytes(placeholderBg, new byte[0]); // Dummy empty file
             }
         }
     }

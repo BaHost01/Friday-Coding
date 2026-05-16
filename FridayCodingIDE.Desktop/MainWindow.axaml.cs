@@ -20,6 +20,10 @@ namespace FridayCodingIDE.Desktop
             
             AnsiConsole.MarkupLine("[bold blue][INFO][/] Initializing Friday-Coding IDE...");
 
+            // Initialize/Load Default Project
+            string defaultProjectPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Projects", "DefaultMod");
+            _projectManager.LoadProject(defaultProjectPath);
+
             // WebView initialization
             MainWebView.NavigationCompleted += (s, e) => {
                 AnsiConsole.MarkupLine("[bold green][SUCCESS][/] WebView Navigation Completed.");
