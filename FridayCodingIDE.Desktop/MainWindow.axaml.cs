@@ -46,17 +46,7 @@ namespace FridayCodingIDE.Desktop
             }
 
             // Auto Update Check
-            Task.Run(async () => {
-                try 
-                {
-                    await AutoUpdater.CheckForUpdatesAsync(OnUpdateAvailable);
-                }
-                catch (Exception ex)
-                {
-                    AnsiConsole.MarkupLine("[bold red][[ERROR]][/] AutoUpdater failed.");
-                    AnsiConsole.WriteException(ex);
-                }
-            });
+            Task.Run(async () => await AutoUpdater.CheckForUpdatesAsync(OnUpdateAvailable));
         }
 
         private void OnMessageReceived(object? sender, object e)
