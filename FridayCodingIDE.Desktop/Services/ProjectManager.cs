@@ -35,12 +35,12 @@ namespace FridayCodingIDE.Services
         {
             try
             {
-                AnsiConsole.MarkupLine($"[bold blue][INFO][/] Initializing new project: [yellow]{name}[/] at [grey]{path}[/]");
+                AnsiConsole.MarkupLine($"[bold blue][[INFO]][/] Initializing new project: [yellow]{name.EscapeMarkup()}[/] at [grey]{path.EscapeMarkup()}[/]");
                 
                 if (!Directory.Exists(path))
                 {
                     Directory.CreateDirectory(path);
-                    AnsiConsole.MarkupLine("[bold green][SUCCESS][/] Created project root directory.");
+                    AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Created project root directory.");
                 }
 
                 ValidateDirectories(path);
@@ -60,7 +60,7 @@ namespace FridayCodingIDE.Services
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine("[bold red][ERROR][/] Error initializing project.");
+                AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Error initializing project.");
                 AnsiConsole.WriteException(ex);
                 return false;
             }
@@ -70,12 +70,12 @@ namespace FridayCodingIDE.Services
         {
             try
             {
-                AnsiConsole.MarkupLine($"[bold blue][INFO][/] Loading project from: [grey]{path}[/]");
+                AnsiConsole.MarkupLine($"[bold blue][[INFO]][/] Loading project from: [grey]{path.EscapeMarkup()}[/]");
                 
                 string configPath = Path.Combine(path, ConfigFileName);
                 if (!File.Exists(configPath))
                 {
-                    AnsiConsole.MarkupLine("[bold yellow][WARN][/] project.json not found. Creating default config.");
+                    AnsiConsole.MarkupLine("[bold yellow][[WARN]][/] project.json not found. Creating default config.");
                     InitializeNewProject(path, "Recovered Project");
                     return true;
                 }
@@ -91,7 +91,7 @@ namespace FridayCodingIDE.Services
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine("[bold red][ERROR][/] Error loading project.");
+                AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Error loading project.");
                 AnsiConsole.WriteException(ex);
                 return false;
             }
@@ -105,11 +105,11 @@ namespace FridayCodingIDE.Services
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 string json = JsonSerializer.Serialize(config, options);
                 File.WriteAllText(configPath, json);
-                AnsiConsole.MarkupLine("[bold green][SUCCESS][/] Project configuration saved.");
+                AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Project configuration saved.");
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine("[bold red][ERROR][/] Failed to save project configuration.");
+                AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Failed to save project configuration.");
                 AnsiConsole.WriteException(ex);
             }
         }
@@ -122,7 +122,7 @@ namespace FridayCodingIDE.Services
                 if (!Directory.Exists(dirPath))
                 {
                     Directory.CreateDirectory(dirPath);
-                    AnsiConsole.MarkupLine($"[bold cyan][FS][/] Created missing directory: [grey]{dir}[/]");
+                    AnsiConsole.MarkupLine($"[bold cyan][[FS]][/] Created missing directory: [grey]{dir.EscapeMarkup()}[/]");
                 }
             }
         }
@@ -135,7 +135,7 @@ namespace FridayCodingIDE.Services
             {
                 string defaultLua = "-- Friday-Coding IDE Default Script\n\nfunction onCreate()\n    -- Called when the script starts\n    debugPrint('Hello from Friday-Coding!')\nend\n";
                 File.WriteAllText(mainLuaPath, defaultLua);
-                AnsiConsole.MarkupLine("[bold cyan][FS][/] Created default [grey]main.lua[/]");
+                AnsiConsole.MarkupLine("[bold cyan][[FS]][/] Created default [grey]main.lua[/]");
             }
 
             // Ensure a basic .gitkeep in empty directories if needed, or just specific files

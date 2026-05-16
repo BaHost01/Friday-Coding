@@ -18,7 +18,7 @@ namespace FridayCodingIDE.Desktop
         {
             InitializeComponent();
             
-            AnsiConsole.MarkupLine("[bold blue][INFO][/] Initializing Friday-Coding IDE...");
+            AnsiConsole.MarkupLine("[bold blue][[INFO]][/] Initializing Friday-Coding IDE...");
 
             // Initialize/Load Default Project
             string defaultProjectPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Projects", "DefaultMod");
@@ -26,7 +26,7 @@ namespace FridayCodingIDE.Desktop
 
             // WebView initialization
             MainWebView.NavigationCompleted += (s, e) => {
-                AnsiConsole.MarkupLine("[bold green][SUCCESS][/] WebView Navigation Completed.");
+                AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] WebView Navigation Completed.");
                 UpdateFileList();
             };
             MainWebView.WebMessageReceived += OnMessageReceived;
@@ -35,12 +35,12 @@ namespace FridayCodingIDE.Desktop
             string uiPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "UI", "index.html");
             if (File.Exists(uiPath))
             {
-                AnsiConsole.MarkupLine($"[bold blue][INFO][/] Loading UI from: [yellow]{uiPath}[/]");
+                AnsiConsole.MarkupLine($"[bold blue][[INFO]][/] Loading UI from: [yellow]{uiPath.EscapeMarkup()}[/]");
                 MainWebView.Url = new Uri("file://" + uiPath);
             }
             else
             {
-                AnsiConsole.MarkupLine("[bold red][ERROR][/] UI file not found!");
+                AnsiConsole.MarkupLine("[bold red][[ERROR]][/] UI file not found!");
             }
 
             // Auto Update Check
@@ -51,7 +51,7 @@ namespace FridayCodingIDE.Desktop
                 }
                 catch (Exception ex)
                 {
-                    AnsiConsole.MarkupLine("[bold red][ERROR][/] AutoUpdater failed.");
+                    AnsiConsole.MarkupLine("[bold red][[ERROR]][/] AutoUpdater failed.");
                     AnsiConsole.WriteException(ex);
                 }
             });
@@ -68,7 +68,7 @@ namespace FridayCodingIDE.Desktop
                 
                 if (string.IsNullOrEmpty(message)) return;
 
-                AnsiConsole.MarkupLine($"[bold cyan][BRIDGE][/] Received: [grey]{message.EscapeMarkup()}[/]");
+                AnsiConsole.MarkupLine($"[bold cyan][[BRIDGE]][/] Received: [grey]{message.EscapeMarkup()}[/]");
                 
                 var msg = JObject.Parse(message);
                 string? action = msg["action"]?.ToString();
@@ -80,7 +80,7 @@ namespace FridayCodingIDE.Desktop
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine("[bold red][ERROR][/] Bridge error occurred.");
+                AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Bridge error occurred.");
                 AnsiConsole.WriteException(ex);
             }
         }
@@ -94,13 +94,13 @@ namespace FridayCodingIDE.Desktop
 
         private void RunMod()
         {
-            AnsiConsole.MarkupLine("[bold yellow][ACTION][/] Running Mod...");
+            AnsiConsole.MarkupLine("[bold yellow][[ACTION]][/] Running Mod...");
             SafeExecuteScriptAsync("window.ide.appendLog('Launching Psych Engine...', 'success')");
         }
 
         private void OnUpdateAvailable(string newVersion)
         {
-            AnsiConsole.MarkupLine($"[bold green][UPDATE][/] New Version Available: [yellow]{newVersion}[/]");
+            AnsiConsole.MarkupLine($"[bold green][[UPDATE]][/] New Version Available: [yellow]{newVersion}[/]");
             SafeExecuteScriptAsync($"window.ide.appendLog('New Update Available: {newVersion}', 'success')");
         }
 
