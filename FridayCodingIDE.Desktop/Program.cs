@@ -17,10 +17,24 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        VelopackApp.Build().Run();
+        AnsiConsole.MarkupLine("[bold blue][[SYSTEM]][/] Starting Friday-Coding IDE...");
+
+        // Velopack.Must run as early as possible.
+        try 
+        {
+            VelopackApp.Build().Run();
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Velopack initialization failed.");
+            AnsiConsole.WriteException(ex);
+        }
+
+        AnsiConsole.MarkupLine($"[bold blue][[SYSTEM]][/] OS detected: [yellow]{RuntimeInformation.OSDescription}[/]");
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
+            AnsiConsole.MarkupLine("[bold blue][[SYSTEM]][/] Allocating Console for Windows...");
             AllocConsole();
             OccultDlls();
         }
@@ -34,20 +48,30 @@ class Program
         try
         {
             var baseDir = AppContext.BaseDirectory;
+            AnsiConsole.MarkupLine($"[bold blue][[FS]][/] Checking for visible DLLs in [grey]{baseDir.EscapeMarkup()}[/]");
             var dlls = Directory.GetFiles(baseDir, "*.dll");
 
+            int hiddenCount = 0;
             foreach (var dll in dlls)
             {
                 var attributes = File.GetAttributes(dll);
                 if ((attributes & FileAttributes.Hidden) != FileAttributes.Hidden)
                 {
                     File.SetAttributes(dll, attributes | FileAttributes.Hidden);
+                    AnsiConsole.MarkupLine($"[bold cyan][[FS]][/] Occulted: [grey]{Path.GetFileName(dll).EscapeMarkup()}[/]");
+                    hiddenCount++;
                 }
             }
+            
+            if (hiddenCount > 0)
+                AnsiConsole.MarkupLine($"[bold green][[SUCCESS]][/] Occulted [yellow]{hiddenCount}[/] DLL files.");
+            else
+                AnsiConsole.MarkupLine("[bold blue][[FS]][/] No visible DLLs found to occult.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to occult DLLs: {ex.Message}");
+            AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Failed to occult DLLs.");
+            AnsiConsole.WriteException(ex);
         }
     }
 

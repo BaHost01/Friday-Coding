@@ -93,14 +93,25 @@ namespace FridayCodingIDE.Desktop
 
         private void UpdateFileList()
         {
-            string[] files = { "main.lua", "assets/images/bg.png" };
-            string json = JArray.FromObject(files).ToString();
-            SafeExecuteScriptAsync($"if(window.ide) window.ide.setProjectFiles({json})");
+            try
+            {
+                AnsiConsole.MarkupLine("[bold blue][[INFO]][/] Refreshing Project Explorer...");
+                string[] files = { "main.lua", "assets/images/bg.png" };
+                string json = JArray.FromObject(files).ToString();
+                SafeExecuteScriptAsync($"if(window.ide) window.ide.setProjectFiles({json})");
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Failed to update file list.");
+                AnsiConsole.WriteException(ex);
+            }
         }
 
         private void RunMod(string code)
         {
-            AnsiConsole.MarkupLine("[bold yellow][[ACTION]][/] Executing Lua Script...");
+            AnsiConsole.MarkupLine("[bold yellow][[ACTION]][/] Executing Lua Script (Internal Engine)...");
+            AnsiConsole.MarkupLine($"[grey][[LUA]][/] Script length: [yellow]{code.Length}[/] characters.");
+            
             _luaService.ExecuteScript(code, (output) => {
                 AnsiConsole.MarkupLine($"[grey][[LUA]][/] {output.EscapeMarkup()}");
                 SafeExecuteScriptAsync($"window.ide.appendLog({JsonConvert.SerializeObject(output)}, 'success')");
@@ -118,8 +129,14 @@ namespace FridayCodingIDE.Desktop
             Task.Run(async () => {
                 try
                 {
+                    AnsiConsole.MarkupLine("[bold yellow][[ACTION]][/] Initiating Psych Engine installation...");
                     string installDir = Path.Combine(AppContext.BaseDirectory, "Engine", "PsychEngine");
-                    if (!Directory.Exists(installDir)) Directory.CreateDirectory(installDir);
+                    
+                    if (!Directory.Exists(installDir)) 
+                    {
+                        Directory.CreateDirectory(installDir);
+                        AnsiConsole.MarkupLine($"[bold blue][[FS]][/] Created directory: [grey]{installDir.EscapeMarkup()}[/]");
+                    }
 
                     string zipPath = Path.Combine(AppContext.BaseDirectory, "psych_engine.zip");
 
@@ -129,6 +146,8 @@ namespace FridayCodingIDE.Desktop
                             using (var client = new HttpClient())
                             {
                                 client.DefaultRequestHeaders.Add("User-Agent", "Friday-Coding-IDE");
+                                AnsiConsole.MarkupLine($"[bold blue][[NET]][/] GET: [grey]{url.EscapeMarkup()}[/]");
+                                
                                 var response = await client.GetAsync(url);
                                 response.EnsureSuccessStatusCode();
 
@@ -138,13 +157,23 @@ namespace FridayCodingIDE.Desktop
                                 }
                             }
                             
+                            AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Download complete.");
+                            
                             ctx.Status("[bold yellow]Extracting Psych Engine...[/]");
                             SafeExecuteScriptAsync("window.ide.appendLog('Extracting Psych Engine...', 'progress', 'install-step')");
                             
-                            if (Directory.Exists(installDir)) Directory.Delete(installDir, true);
+                            if (Directory.Exists(installDir)) 
+                            {
+                                AnsiConsole.MarkupLine("[bold blue][[FS]][/] Cleaning up existing engine files...");
+                                Directory.Delete(installDir, true);
+                                Directory.CreateDirectory(installDir);
+                            }
+                            
+                            AnsiConsole.MarkupLine($"[bold blue][[FS]][/] Extracting to [grey]{installDir.EscapeMarkup()}[/]");
                             System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, installDir);
                             
                             File.Delete(zipPath);
+                            AnsiConsole.MarkupLine("[bold blue][[FS]][/] Cleanup: Deleted temp zip file.");
                         });
 
                     AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Psych Engine Installed successfully.");
@@ -163,13 +192,17 @@ namespace FridayCodingIDE.Desktop
         {
             try
             {
+                // Detailed debug logging for scripts (truncated for console clarity)
+                string brief = script.Length > 50 ? script.Substring(0, 47) + "..." : script;
+                AnsiConsole.MarkupLine($"[grey][[WEB]][/] Executing JS: [grey]{brief.EscapeMarkup()}[/]");
+                
                 await MainWebView.ExecuteScriptAsync(script);
             }
             catch (Exception ex)
             {
                 // CRITICAL: Use AnsiConsole.WriteLine to avoid markup parsing on script content which might contain [ or ]
                 AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Failed to execute script in WebView.");
-                AnsiConsole.WriteLine($"Script: {script}");
+                AnsiConsole.WriteLine($"Script Content: {script}");
                 AnsiConsole.WriteException(ex);
             }
         }
@@ -178,13 +211,14 @@ namespace FridayCodingIDE.Desktop
         {
             try
             {
+                AnsiConsole.MarkupLine("[bold blue][[SYSTEM]][/] Searching for free TCP Port...");
                 int port = GetFreeTcpPort();
-                AnsiConsole.MarkupLine($"[bold blue][[INFO]][/] Allocated Port: [yellow]{port}[/]");
+                AnsiConsole.MarkupLine($"[bold blue][[NET]][/] Allocated Local Port: [yellow]{port}[/]");
 
                 string serverPath = Path.Combine(AppContext.BaseDirectory, "Server.exe");
                 if (File.Exists(serverPath))
                 {
-                    AnsiConsole.MarkupLine("[bold blue][[INFO]][/] Launching Server.exe...");
+                    AnsiConsole.MarkupLine($"[bold blue][[SYSTEM]][/] Launching Backend: [grey]{serverPath.EscapeMarkup()}[/]");
                     
                     _serverProcess = new Process
                     {
@@ -216,12 +250,13 @@ namespace FridayCodingIDE.Desktop
                     };
 
                     _serverProcess.Start();
+                    AnsiConsole.MarkupLine($"[bold green][[SUCCESS]][/] Server.exe started (PID: [yellow]{_serverProcess.Id}[/])");
                     _serverProcess.BeginOutputReadLine();
                     _serverProcess.BeginErrorReadLine();
                 }
                 else
                 {
-                    AnsiConsole.MarkupLine("[bold yellow][[WARN]][/] Server.exe not found. Running in standalone mode.");
+                    AnsiConsole.MarkupLine("[bold yellow][[WARN]][/] Server.exe not found at path. Functional bridge unavailable.");
                 }
             }
             catch (Exception ex)
@@ -242,10 +277,14 @@ namespace FridayCodingIDE.Desktop
 
         protected override void OnClosed(EventArgs e)
         {
+            AnsiConsole.MarkupLine("[bold blue][[SYSTEM]][/] Shutting down Friday-Coding IDE...");
             if (_serverProcess != null && !_serverProcess.HasExited)
             {
+                AnsiConsole.MarkupLine("[bold yellow][[ACTION]][/] Terminating backend server process...");
                 _serverProcess.Kill();
+                AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Backend server terminated.");
             }
+            AnsiConsole.MarkupLine("[bold blue][[SYSTEM]][/] Goodbye!");
             base.OnClosed(e);
         }
     }
