@@ -1,59 +1,42 @@
 using System;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using System.Diagnostics;
-using System.IO;
+using Velopack;
+using Velopack.Sources;
 using Spectre.Console;
 
 namespace FridayCodingIDE.Desktop.Services
 {
     public static class AutoUpdater
     {
-        private const string CurrentVersion = "v1.1.1";
-        private const string RepoUrl = "https://api.github.com/repos/BaHost01/Friday-Coding/releases/latest";
+        private const string RepoUrl = "https://github.com/BaHost01/Friday-Coding";
 
         public static async Task CheckForUpdatesAsync(Action<string> onUpdateAvailable)
         {
             try
             {
-                using (var client = new HttpClient())
+                var mgr = new UpdateManager(new GithubSource(RepoUrl, null, false));
+                
+                // Check for new version
+                var newVersion = await mgr.CheckForUpdatesAsync();
+                if (newVersion == null)
                 {
-                    client.DefaultRequestHeaders.Add("User-Agent", "Friday-Coding-IDE");
-                    
-                    var response = await client.GetAsync(RepoUrl);
-                    
-                    if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
-                    {
-                        AnsiConsole.MarkupLine("[bold yellow][[WARN]][/] GitHub API rate limit exceeded. Skipping update check.");
-                        return;
-                    }
-
-                    response.EnsureSuccessStatusCode();
-                    
-                    var content = await response.Content.ReadAsStringAsync();
-                    var release = JObject.Parse(content);
-                    string? latestTag = release["tag_name"]?.ToString();
-
-                    if (!string.IsNullOrEmpty(latestTag) && latestTag != CurrentVersion)
-                    {
-                        AnsiConsole.MarkupLine($"[bold green][[UPDATE]][/] New version available: [yellow]{latestTag}[/]");
-                        onUpdateAvailable?.Invoke(latestTag);
-                    }
-                    else
-                    {
-                        AnsiConsole.MarkupLine("[bold blue][[INFO]][/] IDE is up to date.");
-                    }
+                    AnsiConsole.MarkupLine("[bold blue][[INFO]][/] IDE is up to date (Velopack).");
+                    return;
                 }
-            }
-            catch (HttpRequestException ex)
-            {
-                AnsiConsole.MarkupLine($"[bold yellow][[WARN]][/] Update check failed (Network): [grey]{ex.Message.EscapeMarkup()}[/]");
+
+                AnsiConsole.MarkupLine($"[bold green][[UPDATE]][/] New version found: [yellow]{newVersion.TargetFullRelease.Version}[/]");
+                onUpdateAvailable?.Invoke(newVersion.TargetFullRelease.Version.ToString());
+
+                // Download new version
+                AnsiConsole.MarkupLine("[bold blue][[INFO]][/] Downloading update in background...");
+                await mgr.DownloadUpdatesAsync(newVersion);
+                
+                AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Update downloaded. It will be applied on next restart.");
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Unexpected error during update check.");
-                AnsiConsole.WriteException(ex);
+                AnsiConsole.MarkupLine("[bold yellow][[WARN]][/] Velopack update check failed. Skipping.");
+                // We don't write exception here to avoid cluttering if it's just a network/rate limit issue
             }
         }
     }
