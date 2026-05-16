@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using FridayCodingIDE.Desktop.Services;
 using FridayCodingIDE.Services;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using AvaloniaWebView;
 using Spectre.Console;
@@ -13,6 +14,7 @@ namespace FridayCodingIDE.Desktop
     public partial class MainWindow : Window
     {
         private ProjectManager _projectManager = new ProjectManager();
+        private LuaService _luaService = new LuaService();
 
         public MainWindow()
         {
@@ -21,7 +23,7 @@ namespace FridayCodingIDE.Desktop
             AnsiConsole.MarkupLine("[bold blue][[INFO]][/] Initializing Friday-Coding IDE...");
 
             // Initialize/Load Default Project
-            string defaultProjectPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Projects", "DefaultMod");
+            string defaultProjectPath = Path.Combine(AppContext.BaseDirectory, "Projects", "DefaultMod");
             _projectManager.LoadProject(defaultProjectPath);
 
             // WebView initialization
@@ -32,7 +34,7 @@ namespace FridayCodingIDE.Desktop
             MainWebView.WebMessageReceived += OnMessageReceived;
 
             // Load UI
-            string uiPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "UI", "index.html");
+            string uiPath = Path.Combine(AppContext.BaseDirectory, "Assets", "UI", "index.html");
             if (File.Exists(uiPath))
             {
                 AnsiConsole.MarkupLine($"[bold blue][[INFO]][/] Loading UI from: [yellow]{uiPath.EscapeMarkup()}[/]");
@@ -75,7 +77,8 @@ namespace FridayCodingIDE.Desktop
 
                 if (action == "run_mod")
                 {
-                    RunMod();
+                    string? code = msg["code"]?.ToString();
+                    RunMod(code ?? "");
                 }
             }
             catch (Exception ex)
@@ -92,10 +95,13 @@ namespace FridayCodingIDE.Desktop
             SafeExecuteScriptAsync($"if(window.ide) window.ide.setProjectFiles({json})");
         }
 
-        private void RunMod()
+        private void RunMod(string code)
         {
-            AnsiConsole.MarkupLine("[bold yellow][[ACTION]][/] Running Mod...");
-            SafeExecuteScriptAsync("window.ide.appendLog('Launching Psych Engine...', 'success')");
+            AnsiConsole.MarkupLine("[bold yellow][[ACTION]][/] Executing Lua Script...");
+            _luaService.ExecuteScript(code, (output) => {
+                AnsiConsole.MarkupLine($"[grey][[LUA]][/] {output.EscapeMarkup()}");
+                SafeExecuteScriptAsync($"window.ide.appendLog({JsonConvert.SerializeObject(output)}, 'success')");
+            });
         }
 
         private void OnUpdateAvailable(string newVersion)

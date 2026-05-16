@@ -12,18 +12,40 @@ namespace FridayCodingIDE.Services
             public string Message { get; set; } = string.Empty;
         }
 
+        public void ExecuteScript(string code, Action<string> onPrint)
+        {
+            try
+            {
+                var script = new Script();
+                
+                // Register FNF-like functions
+                script.Globals["debugPrint"] = (Action<string>)((msg) => onPrint?.Invoke(msg));
+                
+                // Add common placeholders for Psych Engine functions to prevent crashes
+                script.Globals["makeLuaSprite"] = (Action<string, string, float, float>)((t, p, x, y) => onPrint?.Invoke($"[SPRITE] Created {t} from {p} at ({x}, {y})"));
+                script.Globals["addLuaSprite"] = (Action<string, bool>)((t, f) => onPrint?.Invoke($"[SPRITE] Added {t}"));
+                script.Globals["scaleObject"] = (Action<string, float, float>)((t, x, y) => { });
+                script.Globals["setProperty"] = (Action<string, object>)((p, v) => { });
+                script.Globals["setObjectCamera"] = (Action<string, string>)((t, c) => { });
+
+                script.DoString(code);
+            }
+            catch (Exception ex)
+            {
+                onPrint?.Invoke($"ERROR: {ex.Message}");
+            }
+        }
+
         public List<SyntaxError> CheckSyntax(string code)
         {
             var errors = new List<SyntaxError>();
             try
             {
-                // MoonSharp's Script object can parse without full execution
                 var script = new Script();
                 script.DoString(code);
             }
             catch (SyntaxErrorException ex)
             {
-                // We could parse the exception message for line numbers if needed
                 errors.Add(new SyntaxError { Message = ex.Message });
             }
             catch (Exception ex)
@@ -35,7 +57,6 @@ namespace FridayCodingIDE.Services
 
         public List<string> GetAutocomplete(string partialWord)
         {
-            // FNF/Psych Engine commonly used globals/functions
             var symbols = new List<string>
             {
                 "function onCreate()",

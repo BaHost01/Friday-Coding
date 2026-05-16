@@ -9,65 +9,93 @@
 <body>
     <div id="loading-overlay">
         <div class="gradient-bg"></div>
-        <img src="lua-logo.png" alt="Lua" class="spinning-logo">
+        <div class="loader">
+            <svg viewBox="0 0 128 128" class="lua-svg-spinning">
+                <circle cx="64" cy="64" r="60" fill="#00007b" />
+                <circle cx="84" cy="44" r="10" fill="#fff" />
+                <text x="64" y="85" font-family="Arial" font-size="40" fill="#fff" text-anchor="middle" font-weight="bold">Lua</text>
+            </svg>
+            <div class="loading-text">Initializing Workspace...</div>
+        </div>
     </div>
-    <div class="container">
-        <header>
-            <div class="logo-section">
-                <img src="lua-logo.png" alt="Lua" class="logo">
-                <img src="psych-logo.png" alt="Psych" class="logo">
-                <h1>Friday-Coding IDE</h1>
-            </div>
-            <div class="toolbar">
-                <button id="runBtn" class="btn-run">RUN MOD</button>
-                <button id="exportBtn">EXPORT</button>
-            </div>
-        </header>
-        
-        <main>
-            <section id="left-panel" class="panel">
-                <div class="tabs">
-                    <button class="tab active" data-tab="explorer">Explorer</button>
-                    <button class="tab" data-tab="templates">Templates</button>
-                </div>
-                <div id="project-explorer" class="tab-content active">
-                    <ul id="file-list">
-                        <!-- Files populated by C# -->
-                    </ul>
-                </div>
-                <div id="templates" class="tab-content">
-                    <div class="template-item" draggable="true" data-type="sprite">Sprite</div>
-                    <div class="template-item" draggable="true" data-type="note">Note</div>
-                </div>
-            </section>
 
-            <section id="center-panel" class="panel">
-                <div class="tabs">
-                    <button class="tab active" data-tab="designer">Designer</button>
-                    <button class="tab" data-tab="code">Code</button>
-                </div>
-                <div id="designer" class="tab-content active">
-                    <div id="canvas"></div>
-                </div>
-                <div id="code" class="tab-content">
-                    <textarea id="lua-editor" placeholder="Write your Lua here..."></textarea>
-                </div>
-            </section>
-
-            <section id="right-panel" class="panel">
-                <h3>Properties</h3>
-                <div id="property-grid">
-                    <p>Select an object to edit properties.</p>
-                </div>
-            </section>
-        </main>
-
-        <footer>
-            <div id="console">
-                <div class="log">[System] IDE Ready.</div>
+    <div class="app-container">
+        <!-- Activity Bar -->
+        <div class="activity-bar">
+            <div class="action-item active" title="Explorer">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" /></svg>
             </div>
-        </footer>
+            <div class="action-item" title="Templates">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M17,14H19V17H22V19H19V22H17V19H14V17H17V14M11,16L2,9L11,2L20,9L11,16M11,18.54L12.37,17.46L14,18.73V20.27L11,22.61L8,20.27V18.73L9.63,17.46L11,18.54Z" /></svg>
+            </div>
+            <div class="spacer"></div>
+            <div class="action-item" title="Settings">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.35 19.43,11.03L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.97 19.05,5.05L16.56,6.05C16.04,5.66 15.47,5.34 14.85,5.1L14.47,2.45C14.43,2.22 14.22,2.05 14,2.05H10C9.78,2.05 9.57,2.22 9.53,2.45L9.15,5.1C8.53,5.34 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.97 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11.03C4.53,11.35 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.95C7.96,18.34 8.53,18.66 9.15,18.9L9.53,21.55C9.57,21.78 9.78,21.95 10,21.95H14C14.22,21.95 14.43,21.78 14.47,21.55L14.85,18.9C15.47,18.66 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" /></svg>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>EXPLORER</span>
+                <div class="sidebar-actions">
+                    <svg title="New File" viewBox="0 0 24 24"><path fill="currentColor" d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" /></svg>
+                </div>
+            </div>
+            <div class="sidebar-content">
+                <div class="tree-node expanded">
+                    <div class="node-label">
+                        <svg class="chevron" viewBox="0 0 24 24"><path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" /></svg>
+                        <span>DEFAULTMOD</span>
+                    </div>
+                    <div class="node-children">
+                        <ul id="file-list">
+                            <!-- Populated by C# -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor Area -->
+        <div class="editor-area">
+            <div class="tabs-bar">
+                <div class="tab active" data-file="main.lua">
+                    <svg class="file-icon" viewBox="0 0 128 128"><circle cx="64" cy="64" r="60" fill="#00007b" /><text x="64" y="85" font-family="Arial" font-size="40" fill="#fff" text-anchor="middle">Lua</text></svg>
+                    <span>main.lua</span>
+                    <div class="close-tab">&times;</div>
+                </div>
+                <div class="tabs-actions">
+                    <button id="runBtn" class="btn-primary">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z" /></svg>
+                        RUN
+                    </button>
+                    <button id="exportBtn">EXPORT</button>
+                </div>
+            </div>
+            
+            <div class="editor-container">
+                <div id="lua-editor">-- Friday-Coding IDE
+function onCreate()
+    debugPrint('Ready to code!')
+end</div>
+            </div>
+
+            <!-- Bottom Panel -->
+            <div class="bottom-panel">
+                <div class="panel-header">
+                    <div class="panel-tab active">CONSOLE</div>
+                    <div class="panel-tab">PROBLEMS</div>
+                </div>
+                <div id="console" class="panel-content">
+                    <div class="log">[[System]] IDE Initialized in VS Code mode.</div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.3/ace.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

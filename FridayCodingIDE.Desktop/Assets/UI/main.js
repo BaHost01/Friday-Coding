@@ -1,4 +1,18 @@
+let editor;
+
 window.addEventListener('DOMContentLoaded', () => {
+    // Initialize Ace Editor
+    editor = ace.edit("lua-editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/lua");
+    editor.setShowPrintMargin(false);
+    editor.setOptions({
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true,
+        fontSize: "14px"
+    });
+
+    // Loading Sequence
     setTimeout(() => {
         const overlay = document.getElementById('loading-overlay');
         if (overlay) {
@@ -7,33 +21,19 @@ window.addEventListener('DOMContentLoaded', () => {
                 overlay.style.display = 'none';
             }, 500);
         }
-    }, 2000);
+    }, 1500);
 });
 
-document.querySelectorAll('.tab').forEach(button => {
-    button.addEventListener('click', () => {
-        const panel = button.closest('.panel');
-        const tabName = button.getAttribute('data-tab');
-
-        // Update buttons
-        panel.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-        button.classList.add('active');
-
-        // Update content
-        panel.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-            if (content.id === tabName || content.id === tabName + '-explorer' || (tabName === 'explorer' && content.id === 'project-explorer')) {
-                content.classList.add('active');
-            }
-        });
-    });
-});
-
+// Run Mod Button
 const runBtn = document.getElementById('runBtn');
 runBtn.addEventListener('click', () => {
-    log("Running Mod...", "success");
-    if (typeof invokeCSharpAction === 'function') {
-        invokeCSharpAction(JSON.stringify({ action: "run_mod" }));
+    const code = editor.getValue();
+    log("Executing Lua script...", "success");
+    
+    if (window.chrome && window.chrome.webview) {
+        window.chrome.webview.postMessage({ action: "run_mod", code: code });
+    } else if (typeof invokeCSharpAction === 'function') {
+        invokeCSharpAction(JSON.stringify({ action: "run_mod", code: code }));
     }
 });
 
@@ -55,8 +55,12 @@ window.ide = {
             const li = document.createElement('li');
             li.textContent = file;
             li.className = 'file-item';
+            li.onclick = () => log(`Opened ${file}`, "success");
             list.appendChild(li);
         });
     },
-    appendLog: (message, type) => log(message, type)
+    appendLog: (message, type) => log(message, type),
+    setCode: (code) => {
+        editor.setValue(code, -1);
+    }
 };
