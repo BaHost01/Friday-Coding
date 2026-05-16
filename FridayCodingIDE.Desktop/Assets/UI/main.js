@@ -12,6 +12,12 @@ window.addEventListener('DOMContentLoaded', () => {
         fontSize: "14px"
     });
 
+    // Fix Alignment/Typing Line issues by forcing resize
+    const resizeObserver = new ResizeObserver(() => {
+        editor.resize();
+    });
+    resizeObserver.observe(document.getElementById('lua-editor'));
+
     // Loading Sequence
     setTimeout(() => {
         const overlay = document.getElementById('loading-overlay');

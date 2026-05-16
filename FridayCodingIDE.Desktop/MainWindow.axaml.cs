@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using FridayCodingIDE.Desktop.Services;
 using FridayCodingIDE.Services;
@@ -117,19 +118,33 @@ namespace FridayCodingIDE.Desktop
             Task.Run(async () => {
                 try
                 {
+                    string installDir = Path.Combine(AppContext.BaseDirectory, "Engine", "PsychEngine");
+                    if (!Directory.Exists(installDir)) Directory.CreateDirectory(installDir);
+
+                    string zipPath = Path.Combine(AppContext.BaseDirectory, "psych_engine.zip");
+
                     await AnsiConsole.Status()
                         .Spinner(Spectre.Console.Spinner.Known.Dots)
-                        .StartAsync("[bold yellow]Installing Psych Engine...[/]", async ctx => {
-                            AnsiConsole.MarkupLine($"[bold blue][[INFO]][/] Downloading from: [grey]{url.EscapeMarkup()}[/]");
-                            await Task.Delay(3000); // Simulate download
+                        .StartAsync("[bold yellow]Downloading Psych Engine...[/]", async ctx => {
+                            using (var client = new HttpClient())
+                            {
+                                client.DefaultRequestHeaders.Add("User-Agent", "Friday-Coding-IDE");
+                                var response = await client.GetAsync(url);
+                                response.EnsureSuccessStatusCode();
+
+                                using (var fs = new FileStream(zipPath, FileMode.Create))
+                                {
+                                    await response.Content.CopyToAsync(fs);
+                                }
+                            }
                             
-                            ctx.Status("[bold yellow]Extracting Assets...[/]");
-                            SafeExecuteScriptAsync("window.ide.appendLog('Extracting Assets...', 'progress', 'install-step')");
-                            await Task.Delay(2000); // Simulate extraction
+                            ctx.Status("[bold yellow]Extracting Psych Engine...[/]");
+                            SafeExecuteScriptAsync("window.ide.appendLog('Extracting Psych Engine...', 'progress', 'install-step')");
                             
-                            ctx.Status("[bold yellow]Finalizing Installation...[/]");
-                            SafeExecuteScriptAsync("window.ide.appendLog('Finalizing...', 'progress', 'install-step')");
-                            await Task.Delay(1500);
+                            if (Directory.Exists(installDir)) Directory.Delete(installDir, true);
+                            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, installDir);
+                            
+                            File.Delete(zipPath);
                         });
 
                     AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Psych Engine Installed successfully.");
@@ -152,8 +167,9 @@ namespace FridayCodingIDE.Desktop
             }
             catch (Exception ex)
             {
+                // CRITICAL: Use AnsiConsole.WriteLine to avoid markup parsing on script content which might contain [ or ]
                 AnsiConsole.MarkupLine("[bold red][[ERROR]][/] Failed to execute script in WebView.");
-                AnsiConsole.MarkupLine($"[grey]Script: {script.EscapeMarkup()}[/]");
+                AnsiConsole.WriteLine($"Script: {script}");
                 AnsiConsole.WriteException(ex);
             }
         }
