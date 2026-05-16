@@ -12,15 +12,23 @@ namespace FridayCodingIDE.Desktop.Services
 
         public static async Task CheckForUpdatesAsync(Action<string> onUpdateAvailable)
         {
+            // Only check for updates if we are running as a deployed app
+            // Velopack sources often throw if running from 'dotnet run' or generic bin/
             try
             {
                 var mgr = new UpdateManager(new GithubSource(RepoUrl, null, false));
                 
+                if (!mgr.IsInstalled)
+                {
+                    AnsiConsole.MarkupLine("[bold blue][[INFO]][/] Running in portable/debug mode. Update check skipped.");
+                    return;
+                }
+
                 // Check for new version
                 var newVersion = await mgr.CheckForUpdatesAsync();
                 if (newVersion == null)
                 {
-                    AnsiConsole.MarkupLine("[bold blue][[INFO]][/] IDE is up to date (Velopack).");
+                    AnsiConsole.MarkupLine("[bold blue][[INFO]][/] IDE is up to date.");
                     return;
                 }
 
@@ -33,10 +41,9 @@ namespace FridayCodingIDE.Desktop.Services
                 
                 AnsiConsole.MarkupLine("[bold green][[SUCCESS]][/] Update downloaded. It will be applied on next restart.");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                AnsiConsole.MarkupLine("[bold yellow][[WARN]][/] Velopack update check failed. Skipping.");
-                // We don't write exception here to avoid cluttering if it's just a network/rate limit issue
+                // Silence update errors in local runs unless explicitly requested
             }
         }
     }

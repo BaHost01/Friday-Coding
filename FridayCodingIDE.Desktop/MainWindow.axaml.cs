@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using FridayCodingIDE.Desktop.Services;
 using FridayCodingIDE.Services;
 using Newtonsoft.Json;
@@ -215,7 +216,9 @@ namespace FridayCodingIDE.Desktop
                 int port = GetFreeTcpPort();
                 AnsiConsole.MarkupLine($"[bold blue][[NET]][/] Allocated Local Port: [yellow]{port}[/]");
 
-                string serverPath = Path.Combine(AppContext.BaseDirectory, "Server.exe");
+                string serverName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Server.exe" : "Server";
+                string serverPath = Path.Combine(AppContext.BaseDirectory, serverName);
+                
                 if (File.Exists(serverPath))
                 {
                     AnsiConsole.MarkupLine($"[bold blue][[SYSTEM]][/] Launching Backend: [grey]{serverPath.EscapeMarkup()}[/]");
